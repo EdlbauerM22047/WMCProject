@@ -48,7 +48,7 @@ public class ChessBoard extends Fragment implements TurnManager {
         updateTurnDisplay();
        // dein Spielbrett
         board = new Piece[8][8];
-        initializeBoard(board); // deine Logik, um Figuren zu setzen
+        //initializeBoard(board); // deine Logik, um Figuren zu setzen
 
         return binding.getRoot();
     }
@@ -60,10 +60,11 @@ public class ChessBoard extends Fragment implements TurnManager {
         chessGrid.setRowCount(BOARD_SIZE);
         chessGrid.setColumnCount(BOARD_SIZE);
 
+        board = new Piece[8][8]; // direkt hier initialisieren
+
         for (int row = 0; row < BOARD_SIZE; row++) {
             for (int col = 0; col < BOARD_SIZE; col++) {
                 ImageView square = new ImageView(requireContext());
-                square.setTag(new Position(row,col));
                 GridLayout.LayoutParams params = new GridLayout.LayoutParams();
                 params.width = 0;
                 params.height = 0;
@@ -72,80 +73,65 @@ public class ChessBoard extends Fragment implements TurnManager {
                 params.setMargins(1, 1, 1, 1);
                 square.setLayoutParams(params);
 
+                // Farbgebung
                 boolean isWhite = (row + col) % 2 == 0;
                 square.setBackgroundColor(Color.parseColor(isWhite ? "#EEEED2" : "#769656"));
-                square.setOnTouchListener(new PieceTouchListener());
 
+                // Setze Position als Tag (sehr wichtig!)
+                Position pos = new Position(row, col);
+                square.setTag(pos);
 
-                if (row == 6) {
-                    square.setImageResource(R.drawable.whitepawn);
-                    square.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-                    square.setTag("whitepawn");
-
-                }
-                if(row==1){
+                // Figur setzen und im board[][] eintragen
+                if (row == 1) {
                     square.setImageResource(R.drawable.blackpawn);
-                    square.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-                    square.setTag("blackpawn");
-                }
-                if(row==0){
-                    if(col==0||col==7){
-                        square.setImageResource(R.drawable.blackrook);
-                        square.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-                        square.setTag("blackrook");
-                    } else if (col==1||col==6) {
-                        square.setImageResource(R.drawable.blackknight);
-                        square.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-                        square.setTag("blackknight");
-                    } else if (col==2||col==5) {
-                        square.setImageResource(R.drawable.blackbishop);
-                        square.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-                        square.setTag("blackbishop");
-                    } else if (col==3) {
-                        square.setImageResource(R.drawable.blackking);
-                        square.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-                        square.setTag("blackking");
-                    } else {
-                        square.setImageResource(R.drawable.blackqueen);
-                        square.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-                        square.setTag("blackqueen");
-                    }
-                }
-                else {
-                    if(row==7){
-                        if(col==0||col==7){
-                            square.setImageResource(R.drawable.whiterook);
-                            square.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-                            square.setTag("whiterook");
-                        } else if (col==1||col==6) {
-                            square.setImageResource(R.drawable.whiteknight);
-                            square.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-                            square.setTag("whiteknight");
-                        } else if (col==2||col==5) {
-                            square.setImageResource(R.drawable.whitebishop);
-                            square.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-                            square.setTag("whitebishop");
-                        } else if (col==3) {
-                            square.setImageResource(R.drawable.whiteking);
-                            square.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-                            square.setTag("whiteking");
-                        } else {
-                            square.setImageResource(R.drawable.whitequeen);
-                            square.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-                            square.setTag("whitequeen");
-                        }
+                    board[row][col] = new Piece(Type.PAWN, PieceColor.BLACK);
+                } else if (row == 6) {
+                    square.setImageResource(R.drawable.whitepawn);
+                    board[row][col] = new Piece(Type.PAWN, PieceColor.WHITE);
+                } else if (row == 0 || row == 7) {
+                    boolean isBlack = row == 0;
+                    PieceColor color = isBlack ? PieceColor.BLACK : PieceColor.WHITE;
+
+                    int drawable = 0;
+                    Type type = null;
+
+                    switch (col) {
+                        case 0: case 7:
+                            drawable = isBlack ? R.drawable.blackrook : R.drawable.whiterook;
+                            type = Type.ROOK;
+                            break;
+                        case 1: case 6:
+                            drawable = isBlack ? R.drawable.blackknight : R.drawable.whiteknight;
+                            type = Type.KNIGHT;
+                            break;
+                        case 2: case 5:
+                            drawable = isBlack ? R.drawable.blackbishop : R.drawable.whitebishop;
+                            type = Type.BISHOP;
+                            break;
+                        case 3:
+                            drawable = isBlack ? R.drawable.blackqueen : R.drawable.whitequeen;
+                            type = Type.QUEEN;
+                            break;
+                        case 4:
+                            drawable = isBlack ? R.drawable.blackking : R.drawable.whiteking;
+                            type = Type.KING;
+                            break;
                     }
 
+                    square.setImageResource(drawable);
+                    board[row][col] = new Piece(type, color);
                 }
 
-                SquareDragListener listener = new SquareDragListener(this, board);
-                square.setOnDragListener(listener);
+                // Touch & Drag Listener setzen
+                square.setOnTouchListener(new PieceTouchListener());
+                square.setOnDragListener(new SquareDragListener(this, board));
 
+                square.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
                 chessGrid.addView(square);
             }
-
         }
     }
+
 
 
 
